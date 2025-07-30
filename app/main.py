@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
 
+from app.carrot.apis import router as carrot_router
 from app.common.exceptions import (
     BadGatewayError,
     CustomHTTPException,
@@ -24,7 +25,6 @@ from app.core.handlers import (
     request_validation_exception_handler,
 )
 from app.core.settings import get_settings
-from app.sample_module.apis import router as example_router
 
 # Globals
 settings = get_settings()
@@ -55,7 +55,7 @@ app = FastAPI(
     title="Heavyweight FastAPI",
     lifespan=lifespan,
     default_response_class=ORJSONResponse,
-    docs_url="/",
+    docs_url="/" if settings.DEBUG else None,
     contact={
         "name": "GrandGale Technologies",
         "url": "https://github.com/GrandGaleTechnologies",
@@ -90,7 +90,7 @@ app.add_exception_handler(CustomHTTPException, custom_http_exception_handler)  #
 # Logfire Config
 if settings.LOGFIRE_TOKEN:
     logfire.configure(
-        service_name="heavyweight-mongodb",
+        service_name="zomo-relay",
         token=settings.LOGFIRE_TOKEN,
         environment="dev" if settings.DEBUG else "prod",
     )
@@ -109,4 +109,4 @@ async def health_check():
 
 
 # Routers
-app.include_router(example_router, prefix="/users", tags=["Example Docs"])
+app.include_router(carrot_router, prefix="/carrots", tags=["Carrot APIs"])

@@ -1,70 +1,90 @@
-# 🚀 Heavyweight Mongodb FastAPI Template
+# 🚀 Behemoth FastAPI
 
-A robust, production-ready FastAPI template using MongoDB for high-performance, schema-flexible applications. Built on GrandGale Technologies' coding standards, it provides a modular structure, async Motor integration, automatic collection/index setup, and Logfire logging.
+A powerful, scalable template to kickstart your backend projects. Includes FastAPI with Docker integration, JWT authentication, optional Logfire instrumentation, and PEP-582-based dependency management via Astral's `uv`.
 
-Inspired by [FastAPI guidelines](https://github.com/GrandGaleTechnologies/fastapi_guidelines) and enterprise best practices, it’s designed for rapid development and scalable deployments.
+Inspired by [Radoslav Georgiev's Django Structure for Scale lecture](https://youtu.be/yG3ZdxBb1oo?si=D6A9dHyhKb_Kf-J7) and my own experience, this template offers a structured approach to building scalable web applications.
 
 ## 📑 Table of Contents
 
 * [✨ Features](#-features)
 * [📁 Project Structure](#-project-structure)
 * [💡 Getting Started](#-getting-started)
-* [⚙️ Database Setup](#️-database-setup)
-* [🛠️ Example Module Snippets](#️-example-module-snippets)
+* [🛠️ Using auto-module.py](#️-using-auto-modulepy)
+* [🔐 JWT Auth & Security](#-jwt-auth--security)
 * [🎗 License](#-license)
-* [🤝 Contribute](#-contribute)
+* [🚀 Deploy](#-deploy)
+* [🤝 Contribute to the Project](#-contribute-to-the-project)
 * [📬 Contact](#-contact)
 
 ## ✨ Features
 
-* **MongoDB** integration via async Motor client
-* **Automatic collections & index creation** on startup (`setup_mongodb`)
-* **Optional Logfire** instrumentation: set `LOGFIRE_TOKEN` to enable logging; ignored if unset ([Logfire docs](https://logfire.io/docs))
-* **Modular codebase** following GrandGale standards
-* **Optional `uvloop`** support for enhanced async performance (Linux/macOS)
+* **FastAPI** template with JWT authentication and Alembic migrations.
+* **Docker** & **docker-compose** configs for zero-friction container development.
+* **Astral `uv`** for dependency installation and script execution (no manual `venv` activation).
+* **Logfire auto-instrumentation**: set `LOGFIRE_TOKEN` in your environment and the app will automatically send logs to [Pydantic Logfire](https://logfire.pydantic.dev/docs/).
+* **Modular structure** inspired by scaling best practices.
+* **Optional `uvloop`** integration for improved asyncio performance (Linux/macOS only).
 
 ## 📁 Project Structure
 
 ```plaintext
 .vscode/
+alembic/
 app/
+  author/
+    routes/
+      __init__.py
+      base.py
+    schemas/
+      __init__.py
+      base.py
+      create.py
+      edit.py
+      response.py
+    annotations.py
+    apis.py
+    crud.py
+    exceptions.py
+    formatters.py
+    models.py
+    selectors.py
+    services.py
+  common/
+    annotations.py
+    auth.py
+    crud.py
+    dependencies.py
+    exceptions.py
+    paginators.py
+    schemas.py
+    security.py
+    types.py
+    utils.py
   core/
-    database.py       # get_client(), setup_mongodb(), COLLECTIONS
-    settings.py       # pydantic settings loader (MONGODB_URL, JWT secrets, LOGFIRE_TOKEN)
-    handlers.py       # Exception handlers
-
-  sample_module/
-    __init__.py
-    apis.py           # Where our api endpoints go
-    db.py             # Where we keep our collection getters i.e. get_user_collection()
-    exceptions.py     # Where we keep our module specific exceptions i.e. UserNotFound
-    schemas.py        # base, doc, create, edit, response, paginated schemas
-    selectors.py      # data retrieval functions (e.g., get_user_by_id)
-    services.py       # business logic, CRUD operations
-
-common/
-  __init__.py
-  annotations.py      # General annotations i.e. PaginationParams
-  depdencies.py       # General dependencies i.e. get_pagination_params
-  exceptions.py       # General exceptions i.e. NotFound
-  security.py         # password hashing, token utilities
-  pagination.py       # pagination params & metadata helper
-  types.py            # General types i.e. PaginationParamsType
-
+    database.py
+    handlers.py
+    settings.py
+    tags.py
+  external/
+    main.py
 tests/
-  __init__.py
-
+.env_sample
 .flake8
 .gitignore
 .pylintrc
+.python-version
+alembic.ini
+auto-module.py
 docker-compose.yml
 Dockerfile
-.env_sample
-pytest.init
+LICENSE
+pyproject.toml
+pytest.ini
 railway.toml
 README.md
 requirements.txt
 start.sh
+uv.lock
 ```
 
 ## 💡 Getting Started
@@ -72,140 +92,125 @@ start.sh
 ### Prerequisites
 
 * Docker & Docker Compose (optional)
-* using pip
+* [`uv`](https://docs.astral.sh/uv/) installed globally
 
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/GrandGaleTechnologies/heavyweight-mongodb
-cd heavyweight-mongodb
-```
-
-### 2. Install dependencies with `pip`
+### 1. Clone the repository
 
 ```bash
-NOTE: py or python3 depending on your OS
-$ py -m venv .venv
-$ .venv\Scripts\activate # for Windows
-$ pip install -r requirements.txt
+git clone https://github.com/GrandGaleTechnologies/behemoth-fastapi
+cd behemoth-fastapi
 ```
 
-### 3. Configure environment
+### 2. Install dependencies
 
-Copy `.env_sample` to `.env` and set:
+#### Using `uv` (recommended)
 
-```dotenv
-DEBUG=true
-LOGFIRE_TOKEN=    # optional: enable Logfire if set
-MONGODB_URL=mongodb://<user>:<pass>@host:27017
+```bash
+# Optional: add uvloop (doesnt work well on windows)
+uv add uvloop
+uv venv
 ```
 
-### 4. Startup: automatic DB & index setup
+### 3. Environment variables
 
-The `setup_mongodb()` function runs at application startup to create any missing collections and indexes defined in `app.core.database.COLLECTIONS`.
+Copy `.env_sample` to `.env` and set values. If provided, `LOGFIRE_TOKEN` will enable Pydantic Logfire logging. check [this](https://logfire.pydantic.dev/docs/how-to-guides/create-write-tokens/) on how to get your logfire token
 
-### 5. Run the application
+### 4. Initialize the database
+
+```bash
+# With uv
+uv run alembic upgrade head
+```
+
+### 5. Start the application
 
 #### Development mode
 
 ```bash
-$ fastapi dev
+uv run fastapi dev
 ```
 
 #### Production mode
 
 ```bash
-$ fastapi run
+uv run fastapi run
 ```
 
-## ⚙️ Database Setup (app/core/database.py)
+## 🛠️ Using auto-module.py
+
+This script automates creation of new FastAPI modules with a consistent folder layout:
+
+```bash
+app/
+└── ModuleName/
+    ├── routes/__init__.py
+    ├── routes/base.py
+    ├── schemas/base.py
+    ├── schemas/create.py
+    ├── schemas/edit.py
+    ├── schemas/response.py
+    ├── apis.py
+    ├── models.py
+    ├── services.py
+    ├── selectors.py
+    ├── exceptions.py
+    └── formatters.py
+```
+
+### To create a new module:
+
+```bash
+uv run auto-module.py
+```
+
+Follow the prompts to specify the module name.
+
+## 🔐 JWT Auth & Security
+
+### JWT Authentication
+
+* Implemented in `common/auth.py` and `common/security.py`
+* Leverages FastAPI's `Depends` and reusable `get_current_user()` function
+* Tokens include expiration and are signed using a secret key in `.env`
+
+### Secure Endpoints
+
+To protect a route:
 
 ```python
-from functools import lru_cache
-from pymongo import AsyncIOMotorClient
-from app.core.settings import get_settings
+from common.dependencies import get_current_user
 
-settings = get_settings()
-DBNAME = "main"
-COLLECTIONS = {"test": ["id"]}
-
-@lru_cache()
-def get_client():
-    return AsyncIOMotorClient(
-        settings.MONGODB_URL,
-        tz_aware=True,
-        uuidRepresentation="standard",
-    )
-
-async def setup_mongodb():
-    client = get_client()
-    db = client[DBNAME]
-    existing = await db.list_collection_names()
-    for name, indexes in COLLECTIONS.items():
-        if name not in existing:
-            col = await db.create_collection(name)
-            for idx in indexes:
-                await col.create_index(idx)
-    return db
+@app.get("/secure-data")
+def secure_data(user: User = Depends(get_current_user)):
+    return {"message": f"Hello, {user.username}!"}
 ```
 
-*Add new collections or indexes by updating `COLLECTIONS` and restarting the app.*
+### Auth Flow Overview
 
-## 🛠️ Example Module Snippets
-
-### `app/sample_module/db.py`
-
-```python
-from functools import lru_cache
-from app.core.database import get_client
-
-@lru_cache()
-def get_user_collection():
-    return get_client()["main"].get_collection("test")
-```
-
-This is used to get collections, by wrapping it in a lru_cache it returns the same collections obj on subsequent calls *curtesy of fastapi docs on pydantic-settings but we still arent super sure if this has any side effects.
-
-### `app/sample_module/selectors.py`
-
-```python
-async def get_user_by_id(id: str, raise_exc=True):
-    col = get_user_collection()
-    user = await col.find_one({"id": id})
-    if not user and raise_exc:
-        raise UserNotFound()
-    return user
-```
-
-### `app/sample_module/apis.py`
-
-```python
-@router.get("/{user_id}/", response_model=UserResponse)
-async def route_user_details(user_id: str):
-    user = await selectors.get_user_by_id(user_id)
-    return {"data": user}
-
-@router.get("", response_model=PaginatedUserListResponse)
-async def route_user_list(pag: PaginationParams):
-    col = get_user_collection()
-    filters = {}  # build filters...
-    cursor = col.find(filters).sort("first_name", ASCENDING)
-    items = [doc async for doc in cursor.skip(...).limit(...)]
-    total = await col.count_documents(filters)
-    return {"data": items, "meta": get_pagination_metadata_mongo(total, len(items), pag)}
-```
+1. User logs in via `/login` endpoint → receives JWT access token
+2. Frontend stores token (e.g., in localStorage or Authorization header)
+3. Token is sent with each protected request
+4. Backend validates token and grants access
 
 ## 🎗 License
 
-MIT License — see [LICENSE](LICENSE).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contribute
+## 🚀 Deploy
 
-Fork, branch, and PR. Follow [FastAPI guidelines](https://github.com/GrandGaleTechnologies/fastapi_guidelines).
+Deploy this template on Railway:
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/CtmI_O?referralCode=e77QIa)
+
+## 🤝 Contribute to the Project
+
+Contributions are welcome! Fork the repo, create a branch, and submit a PR. Engage in discussions for ideas and improvements.
 
 ## 📬 Contact
 
 * **Name:** GrandGale Technologies
-* **Email:** [admin@grandgale.tech](mailto:angobello0@gmail.com)
+* **Email:** [angobello0@gmail.com](mailto:angobello0@gmail.com)
 * **GitHub:** [https://github.com/GrandGaleTechnologies](https://github.com/GrandGaleTechnologies)
 * **LinkedIn:** [https://linkedin.com/in/angobello0](https://linkedin.com/in/angobello0)
+* **Upwork:** [https://www.upwork.com/freelancers/\~01bb1007bf8311388a](https://www.upwork.com/freelancers/~01bb1007bf8311388a)
+* **Instagram:** [https://www.instagram.com/bello\_ango0/](https://www.instagram.com/grandgale_technologies0/)

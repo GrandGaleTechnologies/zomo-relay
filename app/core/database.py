@@ -11,7 +11,7 @@ settings = get_settings()
 # Constants.
 DBNAME = "main"
 # NOTE: key = name of the collection, items = indexes
-COLLECTIONS = {"test": ["id"]}
+COLLECTIONS = {"carrots": ["carrot_code", "service"]}
 
 
 @lru_cache()
