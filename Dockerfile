@@ -3,7 +3,7 @@ FROM python:3.12
 ENV PYTHONUNBUFFERED=1
 
 # The installer requires curl (and certificates) to download the release archive
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates supervisor
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
 
 # Download the latest installer
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
@@ -21,7 +21,5 @@ COPY . /app
 # Optional: Install uvloop only if on Linux (already here)
 RUN uv add uvloop
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
-
+# Entrypoint to shell script
+CMD ["/bin/bash", "/app/start.sh"]
