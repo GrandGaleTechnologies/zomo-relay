@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
 
+from app.auth.apis import router as auth_router
 from app.carrot.apis import router as carrot_router
 from app.common.exceptions import (
     BadGatewayError,
@@ -25,9 +26,11 @@ from app.core.handlers import (
     request_validation_exception_handler,
 )
 from app.core.settings import get_settings
+from app.core.tags import get_tags
 
 # Globals
 settings = get_settings()
+tags = get_tags()
 
 
 # Lifespan (startup, shutdown)
@@ -109,4 +112,5 @@ async def health_check():
 
 
 # Routers
-app.include_router(carrot_router, prefix="/carrots", tags=["Carrot APIs"])
+app.include_router(auth_router, tags=[tags.AUTH])
+app.include_router(carrot_router, tags=[tags.CARROT])
